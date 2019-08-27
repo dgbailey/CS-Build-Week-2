@@ -15,21 +15,22 @@ const Graph = () =>{
 
 //BFS for shortest path to a desired room
 
-const bfs = graphState => (currentRoom, desired_room_identifyer = '?') =>{
+const bfs = graphState => (currentRoomState, desired_room_identifyer = '?') =>{
     //defaults to finding unexplored rooms
+    //returns null or array of vertices [0,3,4,5,etc]
     //will also take custom configurable for finding store and other landmarks
     //perhaps label the store with a special key once found
     return(
         {
-        'bfs': (currentRoom, desired_room_identifyer) => {
+        'bfs': (currentRoomState, desired_room_identifyer) => {
 
             //helper function for searching within graph sub arrays
-            function _room_identifyer_helper(desired_room_identifyer){
-                let roomDirections = Object.keys(graphState[currentRoom.id])
-                let curr = graphState[currentRoom.id]
+            function _room_identifyer_helper(graphDirectionArray){
+                let roomDirections = Object.keys(graphDirectionArray)
+                // let curr = graphState[currentRoomState.room_id]
                 let directions = []
                 roomDirections.forEach(directionKey => {
-                    if(curr[directionKey] === desired_room_identifyer){
+                    if(graphDirectionArray[directionKey] === desired_room_identifyer){
                         directions.append(directionKey)
                         }
                     })
@@ -46,12 +47,14 @@ const bfs = graphState => (currentRoom, desired_room_identifyer = '?') =>{
             //start BFS
 
             let queue = []
-            queue.push([currentRoom.id])
+            queue.push([currentRoomState.room_id])
             let found = []
 
             while (queue.length > 0){
                 let path = queue.shift() 
                 let vertex = path[-1]
+
+               
 
                 if(!found.includes(vertex)){
                     //if our current vertex has not been visited check for our search value
@@ -62,10 +65,10 @@ const bfs = graphState => (currentRoom, desired_room_identifyer = '?') =>{
                     //append visited vertex to found
                     found.append(vertex)
                     let possible_directions = Object.keys(graphState[vertex])
-                   
+                    let new_path_to_explore = [...path]
                     possible_directions.forEach(direction => {
                         //for each direct neighbor of current vertex, copy current path, append that neighbor, enqueue new path
-                        let new_path_to_explore = [...path]
+                        
                         new_path_to_explore.push(graphState[vertex][direction])
                         queue.push(new_path_to_explore)
 
@@ -76,6 +79,7 @@ const bfs = graphState => (currentRoom, desired_room_identifyer = '?') =>{
 
                 return null
             }
+            
         }
     })
 }
