@@ -120,7 +120,7 @@ const chooseRandomDFS = graphState => roomObject =>{
         {
         'chooseRandomDFS': roomObject =>{
             let unvisitedRooms = []
-            let roomId = roomObject.id
+            let roomId = roomObject.room_id
             
             //check for quetion marks in exits array
             for (direction of roomObject.exits){
@@ -162,9 +162,9 @@ const update = graphState => (newRoomObject,prevRoomObject,prevDirection) => {
                 graphstate[prevRoomObject.room_id].prevDirection = newRoomObject.roomId;
 
                 //perform updates when new data found for existing rooms
-                if (newRoomObject.id in Object.keys(graphState)){
+                if (newRoomObject.room_id in Object.keys(graphState)){
                     let inverseDirectionForUpdate = get_opposite(prevDirection);
-                    graphState[newRoomObject.id].foundDirectionForUpdate = prevRoomObject.room_id;
+                    graphState[newRoomObject.room_id].foundDirectionForUpdate = prevRoomObject.room_id;
                 }
                 
 
@@ -177,7 +177,7 @@ const update = graphState => (newRoomObject,prevRoomObject,prevDirection) => {
                         graphState[newRoomObject.roomId].exitLabel = '?';
                     })
 
-                    graphState[newRoomObject.id].inverseDirectionForUpdate = prevRoomObject.room_id
+                    graphState[newRoomObject.room_id].inverseDirectionForUpdate = prevRoomObject.room_id
 
                 }
 

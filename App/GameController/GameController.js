@@ -1,7 +1,7 @@
 //Game controller (movement, sell, fly etc)
 const fetch = require("node-fetch");
 let gameState = {
-
+    'cooldown':0
 }
 
 const GameController = () =>{
@@ -11,24 +11,25 @@ const GameController = () =>{
                         sellTreasure(gameState),
                         confirmSale(gameState),
                         changeName(gameState),
-                        checkInventory(gameState))
+                        checkInventory(gameState),
+                        evaluate(gameState))
 
     
 }
 
+const _setGameStateCooldown = (secToMilsec) =>{
+    gameState.cooldown = secToMilsec * 1000
+}
 
-
-
-const move = gameState  =>{
-    //takes only the direction n.s.e.w
+const evaluate = gameState => {
     return(
         {
-        'move': data => {
-            let body = {'direction':data}
-            fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/',
+        'evaluate': setTimeout(name => {
+            let body = {"name":`[${name}]`}
+            fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/examine/',
             {
                 'method':"POST",
-                'body':JSON.stringify(data),
+                'body':JSON.stringify(body),
 
                 'headers':{
                     'Authorization': 'Token 08b78c7c2567cf18a2e58185f8fac661b75363df',
@@ -38,8 +39,12 @@ const move = gameState  =>{
                 function(response){
                     //reads response data async, headers arrive first, then body
                     //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
-                    response.json().then(data => 
-        	console.log(data))}
+                    response.json().then(data => {
+                        _setGameStateCooldown(data.cooldown)
+                        console.log("cooldown set:",data.cooldown)
+                        return data
+                    }
+        	        )}
                 ,
                 function(error){
                     console.log(error.message)
@@ -47,7 +52,45 @@ const move = gameState  =>{
             
            
             
-        }
+        },gameState.cooldown)
+    }
+    )
+}
+
+
+const move = gameState  =>{
+    //takes only the direction n.s.e.w
+    return(
+        {
+        'move': setTimeout(direction => {
+            let body = {'direction':direction}
+            fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/',
+            {
+                'method':"POST",
+                'body':JSON.stringify(body),
+
+                'headers':{
+                    'Authorization': 'Token 08b78c7c2567cf18a2e58185f8fac661b75363df',
+                    'Content-Type': 'application/json'
+                }
+            }).then(
+                function(response){
+                    //reads response data async, headers arrive first, then body
+                    //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
+                    response.json().then(data => {
+                        _setGameStateCooldown(data.cooldown)
+                        console.log("cooldown set:",data.cooldown)
+                        return data
+                    }
+        	        )}
+                ,
+                function(error){
+                    console.log(error.message)
+                })
+            
+           
+            
+        },gameState.cooldown)
     }
     )
 }
@@ -55,12 +98,12 @@ const move = gameState  =>{
 const getTreasure = gameState => {
     return(
     {
-    'getTreasure': () => {
-        let data = {"name":"treasure"}
+    'getTreasure': setTimeout(treasureName => {
+        let body = {"name":`${treasureName}`}
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/take/',
         {
             'method':"POST",
-            'body':JSON.stringify(data),
+            'body':JSON.stringify(body),
 
             'headers':{
                 'Authorization': 'Token 08b78c7c2567cf18a2e58185f8fac661b75363df',
@@ -71,9 +114,13 @@ const getTreasure = gameState => {
                 //reads response data async, headers arrive first, then body
                 //promise within a promise here?
                 //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
-                response.json().then(data => 
-                    
-                    console.log("You took treasure:",data))}
+       
+                response.json().then(data => {
+                    _setGameStateCooldown(data.cooldown)
+                    console.log("cooldown set:",data.cooldown)
+                    console.log("You took treasure:",data)
+                }
+                )}
             ,
             function(error){
                 console.log(error.message)
@@ -81,19 +128,19 @@ const getTreasure = gameState => {
         
        
         
-    }}
+    },gameState.cooldown)}
     
 )}
 
 const sellTreasure = gameState => {
     return(
     {
-    'sellTreasure': () => {
-        let data = {"name":"treasure"}
+    'sellTreasure': setTimeout(treasureName => {
+        let body = {"name":`${treasureName}`}
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/',
         {
             'method':"POST",
-            'body':JSON.stringify(data),
+            'body':JSON.stringify(body),
 
             'headers':{
                 'Authorization': 'Token 08b78c7c2567cf18a2e58185f8fac661b75363df',
@@ -104,9 +151,13 @@ const sellTreasure = gameState => {
                 //reads response data async, headers arrive first, then body
                 //promise within a promise here?
                 //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
-                response.json().then(data => 
-                    
-                    console.log("You proposed selling treasure, PLEASE CONFIRM:",data))}
+           
+                response.json().then(data => {
+                    _setGameStateCooldown(data.cooldown)
+                    console.log("cooldown set:",data.cooldown)
+                    console.log("You proposed selling treasure, PLEASE CONFIRM:",data)
+                }
+                )}
             ,
             function(error){
                 console.log(error.message)
@@ -114,7 +165,7 @@ const sellTreasure = gameState => {
         
        
         
-    }}
+    },gameState.cooldown)}
     
 )}
 
@@ -122,13 +173,13 @@ const confirmSale = gameState => {
     return(
     {
     
-    'sellTreasure': () => {
-        data = {"name":"treasure", "confirm":"yes"}
+    'sellTreasure': setTimeout(treasureName => {
+        body = {"name":`${treasureName}`, "confirm":"yes"}
        
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/',
         {
             'method':"POST",
-            'body':JSON.stringify(data),
+            'body':JSON.stringify(body),
 
             'headers':{
                 'Authorization': 'Token 08b78c7c2567cf18a2e58185f8fac661b75363df',
@@ -139,9 +190,15 @@ const confirmSale = gameState => {
                 //reads response data async, headers arrive first, then body
                 //promise within a promise here?
                 //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
-                response.json().then(data => 
-                    
-                    console.log("You SOLD treasure:",data))}
+                
+               
+                response.json().then(data => {
+                    _setGameStateCooldown(data.cooldown)
+                    console.log("cooldown set:",data.cooldown)
+                    console.log("You SOLD treasure:",data)
+                }
+                )}
+                
             ,
             function(error){
                 console.log(error.message)
@@ -149,19 +206,19 @@ const confirmSale = gameState => {
         
        
         
-    }}
+    },gameState.cooldown)}
     
 )}
 
 const changeName = gameState => {
     return(
     {
-    'changeName': name => {
-        let data = {"name":`[${name}]`}
+    'changeName': setTimeout(name => {
+        let body = {"name":`[${name}]`}
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/change_name/',
         {
             'method':"POST",
-            'body':JSON.stringify(data),
+            'body':JSON.stringify(body),
 
             'headers':{
                 'Authorization': 'Token 08b78c7c2567cf18a2e58185f8fac661b75363df',
@@ -172,9 +229,13 @@ const changeName = gameState => {
                 //reads response data async, headers arrive first, then body
                 //promise within a promise here?
                 //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
-                response.json().then(data => 
-                    
-                    console.log("You Changed your Name!:",data))}
+                response.json().then(data => {
+                    _setGameStateCooldown(data.cooldown)
+                    console.log("cooldown set:",data.cooldown)
+                    console.log("You Changed your Name!:",data)
+                }
+                )}
+                
             ,
             function(error){
                 console.log(error.message)
@@ -182,14 +243,14 @@ const changeName = gameState => {
         
        
         
-    }}
+    },gameState.cooldown)}
     
 )}
 
 const checkInventory = gameState => {
     return(
     {
-    'checkInventory': () => {
+    'checkInventory': setTimeout(() => {
         
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/status/',
         {
@@ -204,9 +265,14 @@ const checkInventory = gameState => {
                 //reads response data async, headers arrive first, then body
                 //promise within a promise here?
                 //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
-                response.json().then(data => 
+               
+                    response.json().then(data => {
+                        _setGameStateCooldown(data.cooldown)
+                        console.log("cooldown set:",data.cooldown)
+                        console.log("You Inventory:",data)
+                    }
+                    )}
                     
-                    console.log("You Inventory:",data))}
             ,
             function(error){
                 console.log(error.message)
@@ -214,7 +280,7 @@ const checkInventory = gameState => {
         
        
         
-    }}
+    },gameState.cooldown)}
     
 )}
 

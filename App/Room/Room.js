@@ -1,15 +1,8 @@
 //room composed object
 
-const Room = () =>{
+const Room = evaluate =>{
     let roomState = {
-        "room_id": 10,
-        "title": "A Dark Room",
-        "description": "You cannot see anything.",
-        "coordinates": "(60,61)",
-        "exits": ["n", "s", "w"],
-        "cooldown": 0,
-        "errors": [],
-        "messages": ["You have walked north."]
+       ...evaluate
       }
 
     return Object.assign({},setState(roomState),
