@@ -2,6 +2,7 @@
 const Graph = require("../Map/Map.js").graph
 const Player = require("../Player/Player.js").player
 const Room = require("../Room/Room.js").room
+const GameController = require("../GameController/GameController.js").gameController
 
 
 let myGraph = Graph()
