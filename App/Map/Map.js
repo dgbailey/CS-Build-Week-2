@@ -146,7 +146,7 @@ const chooseRandomDFS = graphState => roomObject =>{
 }
 const getState = graphState => {
     return(
-        {'getState':() => console.log(graphState)}
+        {'getState':() => graphState}
     )
     
 }
@@ -159,12 +159,12 @@ const update = graphState => (newRoomObject,prevRoomObject,prevDirection) => {
                     const direction_dict = {'n':'s','s':'n','e':'w','w':'e'};
                     return direction_dict[direction]
                 }
-                graphstate[prevRoomObject.room_id][prevDirection] = newRoomObject.roomId;
+                graphstate[prevRoomObject.room_id].prevDirection = newRoomObject.roomId;
 
                 //perform updates when new data found for existing rooms
-                if (newRoomObject.id in graphState){
+                if (newRoomObject.id in Object.keys(graphState)){
                     let inverseDirectionForUpdate = get_opposite(prevDirection);
-                    graphState[newRoomObject.id][foundDirectionForUpdate] = prevRoomObject.id;
+                    graphState[newRoomObject.id].foundDirectionForUpdate = prevRoomObject.room_id;
                 }
                 
 
@@ -174,10 +174,10 @@ const update = graphState => (newRoomObject,prevRoomObject,prevDirection) => {
                     let inverseDirectionForUpdate = get_opposite(prevDirection);
                     graphState[newRoomObject.roomId] = {}
                     newRoomObject.exits.forEach(exitLabel => {
-                        graphState[newRoomObject.roomId][exitLabel] = '?';
+                        graphState[newRoomObject.roomId].exitLabel = '?';
                     })
 
-                    graphState[newRoomObject.id][inverseDirectionForUpdate] = prevRoomObject.id
+                    graphState[newRoomObject.id].inverseDirectionForUpdate = prevRoomObject.room_id
 
                 }
 

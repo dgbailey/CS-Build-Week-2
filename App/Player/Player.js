@@ -40,7 +40,7 @@ const getState = playerState =>  {
     return({
 
         'getState':() =>{
-            console.log(playerState)
+            return playerState
         }
     })
 
