@@ -12,13 +12,13 @@ const GameController = require("../GameController/GameController.js").gameContro
 // 2) improper use of 'in' keyword for checking for keys in an array
 
 // this loop needs to become an async function
-async function traverse(){
+async function naiveTraversal(){
     let myGameController = GameController()
     let myPlayer = Player()
     //everytime I restart with node currRoom should give me room data from which I can BFS or DFS
     let evaluation  
     await myGameController.init().then((data) => {evaluation = data})
-    let myGraph = Graph()
+    let myGraph = Graph(evaluation)
     let currRoom = Room(evaluation)//pass the result of evaluate endopoint here
   
     let shopId = null
@@ -40,7 +40,7 @@ async function traverse(){
        
     
         if (depthFirstDirection){
-            //while we can traverse depth first let's move
+            //while we can naiveTraversal depth first let's move
             let nextRoomState
             await myGameController.move(depthFirstDirection).then((data) => {nextRoomState = data}) 
             //all game controller methods have built cooldown. Need to really think about the efficiency here
@@ -88,7 +88,7 @@ async function traverse(){
         else{
             
             console.log("BFS Current room",currRoom.getState())
-            let nextShortestPathToUnexplored = myGraph.bfs(currRoom.getState(),250) 
+            let nextShortestPathToUnexplored = myGraph.bfs(currRoom.getState(),'?') 
             console.log("NEXT SHORTEST",nextShortestPathToUnexplored)
             //translate nextShortestPathToUnexplored from integers to strings n.s.e.w
             let translatedDirections = []
@@ -142,28 +142,84 @@ async function traverse(){
     }
 
     //write current graphState to file
-    console.log("..........writing to file")
-    fs.writeFileSync('shop.json', JSON.stringify(shopId))
-    fs.writeFileSync('nameChanger.json', JSON.stringify(nameChanger))
-    fs.writeFileSync('graph.json', JSON.stringify(myGraph.getState()))
+    // console.log("..........writing to file")
+    // fs.writeFileSync('shop.json', JSON.stringify(shopId))
+    // fs.writeFileSync('nameChanger.json', JSON.stringify(nameChanger))
+    // fs.writeFileSync('graph.json', JSON.stringify(myGraph.getState()))
 }
 
 
-traverse()
+
+//////itemname takes the form str 'descriptor:value'
+async function itemFinder(roomID){
+    // let [k,v] = itemName.split(":")
+    let currentGraph = Graph(null)
+    let myGameController = GameController()
+    // let itemLocations = []
+    // for(let vertex in currentGraph){
+    //     if(currentGraph[vertex][k] === v){
+    //         itemLocations.push(vertex)
+    //     }
+    // }
+    let currentRoom  
+    console.log("Sourcing current room")
+    await myGameController.init().then((data) => {currentRoom = data})
+    let nextShortestPathToUnexplored = currentGraph.bfs(currentRoom,roomID) 
 
 
-// let myArr = 'swwwswwwsnnenesennn'
-// let splitter = myArr.split("")
-// console.log(splitter)
-// async function pureMovement(dirAsplitsplitterterrray){
-//     let moveGame = GameController()
-//     for(let dir of splitter){
-//         let data
-//         moveGame.move(dir).then(res => {data = res})
-//         console.log(data)
-//     }
-// }
+    console.log("NEXT SHORTEST",nextShortestPathToUnexplored)
+     //translate nextShortestPathToUnexplored from integers to strings n.s.e.w
+    let translatedDirections = []
+    let translationGraph = currentGraph.getState()
+    
+ 
+    for(let i = 0; i < nextShortestPathToUnexplored.length -1; i++){
+        console.log("translating")
+        let bfs_vertex = nextShortestPathToUnexplored[i]
+        //[234]
+        for(let value in translationGraph[bfs_vertex]){
+            
+            if (translationGraph[bfs_vertex][value] === nextShortestPathToUnexplored[i +1]){
+                console.log("",value)
+                translatedDirections.push(value)
+            }
+        }
+    }
+    console.log("Translation Complete",translatedDirections)
+   
+    let shortened = nextShortestPathToUnexplored.slice(1,-1)
+
+    for(direction of translatedDirections){
+        
+        let v = shortened.shift()
+
+        console.log("VVVVVVV",v)
+        let nextRoomState
+        // console.log(translatedDirections[i],nextShortestPathToUnexplored[i+1])
+        await myGameController.move([direction,v]).then((data) => {nextRoomState = data})
+      
+        //trying this to reset roomsatate
+       
+        console.log("BFS RETRACING",nextRoomState)
+    }
+
+    //call move for each direction in new translated array
+    //async didn't like forEach()
+    // for(let direction of translatedDirections){
+    //     let nextRoomState
+    //     await myGameController.move(direction).then((data) => {nextRoomState = data})
+    //     // currRoom.setState(nextRoomState)
+    //     //trying this to reset roomsatate
+    //     currRoom.setState(nextRoomState)
+    //     console.log("BFS RETRACING",currRoom.getState())
+    //     }
 
 
-// pureMovement()
+}
+
+// naiveTraversal()
+itemFinder(495)
+
+
+
 
