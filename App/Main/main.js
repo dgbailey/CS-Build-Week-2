@@ -199,26 +199,40 @@ async function itemFinder(roomID){
         await myGameController.move([direction,v]).then((data) => {nextRoomState = data})
       
         //trying this to reset roomsatate
+
        
         console.log("BFS RETRACING",nextRoomState)
-    }
 
-    //call move for each direction in new translated array
-    //async didn't like forEach()
-    // for(let direction of translatedDirections){
-    //     let nextRoomState
-    //     await myGameController.move(direction).then((data) => {nextRoomState = data})
-    //     // currRoom.setState(nextRoomState)
-    //     //trying this to reset roomsatate
-    //     currRoom.setState(nextRoomState)
-    //     console.log("BFS RETRACING",currRoom.getState())
-    //     }
+         //start treasure check in the room into which I just moved
+      }
+
+    
 
 
 }
 
 // naiveTraversal()
-itemFinder(495)
+
+// grave
+// itemFinder(495)
+
+// shop
+// itemFinder(1)
+
+//mine
+// itemFinder(250)
+
+//transmog
+// itemFinder(495)
+
+//pirate
+// itemFinder(467)
+
+//mt hol shrine
+itemFinder(250)
+
+//L shrine
+// itemFinder(461)
 
 
 

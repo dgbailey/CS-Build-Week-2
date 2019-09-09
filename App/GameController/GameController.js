@@ -12,21 +12,75 @@ const GameController = () =>{
                         confirmSale(gameState),
                         changeName(gameState),
                         checkInventory(gameState),
-                        evaluate(gameState))
+                        evaluate(gameState),
+                        init(gameState))
 
     
 }
 
+
 const _setGameStateCooldown = (secToMilsec) =>{
     gameState.cooldown = secToMilsec * 1000
 }
+function delay(t,v) {
+    return new Promise(function(resolve) { 
+        setTimeout(resolve,t,v)
+    });
+ }
+
+ //write init function
+
+const init = gameState => {
+    return(
+        {
+        'init': () => delay(gameState.cooldown).then(() => {
+           
+            console.log("FIRING INIT!!!")
+            return fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/init/',
+            {
+                'method':"GET",
+                
+
+                'headers':{
+                    'Authorization': 'Token 08b78c7c2567cf18a2e58185f8fac661b75363df',
+                    'Content-Type': 'application/json'
+                }
+            }).then(
+                function(response){
+                    
+                    //reads response data async, headers arrive first, then body
+                    //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
+                    return response.json().then(data => {
+                        _setGameStateCooldown(data.cooldown)
+                        console.log("cooldown set:",data.cooldown)
+                        return data
+                    }
+                    ).catch((error) => {
+                        console.log(error)
+                      })}
+            
+                ,
+                function(error){
+                    console.log(error.message)
+                })
+                
+            
+            
+            
+        })
+    }
+    )
+    }
 
 const evaluate = gameState => {
     return(
         {
-        'evaluate': setTimeout(name => {
-            let body = {"name":`[${name}]`}
-            fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/examine/',
+        'evaluate': name => delay(gameState.cooldown,name).then(name => {
+            console.log("NAMEEE",name)
+            let body = {"name":name}
+            console.log("***BODY******",body)
+            console.log("FIRING FETCH EVAL!!!")
+            return fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/examine/',
             {
                 'method':"POST",
                 'body':JSON.stringify(body),
@@ -37,22 +91,25 @@ const evaluate = gameState => {
                 }
             }).then(
                 function(response){
+                    
                     //reads response data async, headers arrive first, then body
                     //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
-                    response.json().then(data => {
+                    return response.json().then(data => {
                         _setGameStateCooldown(data.cooldown)
                         console.log("cooldown set:",data.cooldown)
                         return data
                     }
-        	        )}
+                    )}
+            
                 ,
                 function(error){
                     console.log(error.message)
                 })
+                
             
            
             
-        },gameState.cooldown)
+        })
     }
     )
 }
@@ -62,9 +119,13 @@ const move = gameState  =>{
     //takes only the direction n.s.e.w
     return(
         {
-        'move': setTimeout(direction => {
-            let body = {'direction':direction}
-            fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/',
+        'move': (direction,v) => delay(gameState.cooldown,direction).then((direction) => {
+            let [v,d] = direction
+            console.log("FIRING MOVE TEST")
+            let body = {"direction":v,"next_room_id":`${d}`}
+            console.log("***FIRING MOVE******")
+            console.log("***BODY******",body)
+            return fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/',
             {
                 'method':"POST",
                 'body':JSON.stringify(body),
@@ -77,9 +138,11 @@ const move = gameState  =>{
                 function(response){
                     //reads response data async, headers arrive first, then body
                     //https://stackoverflow.com/questions/37555031/why-does-json-return-a-promise
-                    response.json().then(data => {
+                    return response.json().then(data => {
                         _setGameStateCooldown(data.cooldown)
-                        console.log("cooldown set:",data.cooldown)
+                        console.log("Data from first move",data.room_id)
+                        console.log("cooldown set MOVEMENT:",data.cooldown)
+                        
                         return data
                     }
         	        )}
@@ -90,7 +153,7 @@ const move = gameState  =>{
             
            
             
-        },gameState.cooldown)
+        })
     }
     )
 }
@@ -98,7 +161,7 @@ const move = gameState  =>{
 const getTreasure = gameState => {
     return(
     {
-    'getTreasure': setTimeout(treasureName => {
+    'getTreasure': treasureName  => delay(gameState.cooldown,treasureName).then(treasureName => {
         let body = {"name":`${treasureName}`}
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/take/',
         {
@@ -128,14 +191,14 @@ const getTreasure = gameState => {
         
        
         
-    },gameState.cooldown)}
+    })}
     
 )}
 
 const sellTreasure = gameState => {
     return(
     {
-    'sellTreasure': setTimeout(treasureName => {
+    'sellTreasure': treasureName => delay(gameState.cooldown,treasureName).then(treasureName => {
         let body = {"name":`${treasureName}`}
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/',
         {
@@ -165,7 +228,7 @@ const sellTreasure = gameState => {
         
        
         
-    },gameState.cooldown)}
+    })}
     
 )}
 
@@ -173,7 +236,7 @@ const confirmSale = gameState => {
     return(
     {
     
-    'sellTreasure': setTimeout(treasureName => {
+    'confirmSale': treasureName => delay(gameState.cooldown,treasureName).then(treasureName => {
         body = {"name":`${treasureName}`, "confirm":"yes"}
        
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/',
@@ -206,14 +269,14 @@ const confirmSale = gameState => {
         
        
         
-    },gameState.cooldown)}
+    })}
     
 )}
 
 const changeName = gameState => {
     return(
     {
-    'changeName': setTimeout(name => {
+    'changeName': name => {
         let body = {"name":`[${name}]`}
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/change_name/',
         {
@@ -243,14 +306,14 @@ const changeName = gameState => {
         
        
         
-    },gameState.cooldown)}
+    }}
     
 )}
 
 const checkInventory = gameState => {
     return(
     {
-    'checkInventory': setTimeout(() => {
+    'checkInventory': () => {
         
         fetch('https://lambda-treasure-hunt.herokuapp.com/api/adv/status/',
         {
@@ -280,7 +343,7 @@ const checkInventory = gameState => {
         
        
         
-    },gameState.cooldown)}
+    }}
     
 )}
 
@@ -292,6 +355,12 @@ module.exports = {
 //https://lambda-treasure-hunt.herokuapp.com/api/adv/change_name/
 
 //https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/
+// async function test(){
+//     let myController = GameController()
+//     let hello
+//     await myController.evaluate('player149').then((data) => {hello = data})
 
-// let myController = GameController()
-// myController.move({"direction":"s"})
+//     console.log("LOGGING",hello)
+// }
+
+// test()
